@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+   --font-bungee: "Bungee", sans-serif;
+   --font-poppins: "Poppins", sans-serif
+}
