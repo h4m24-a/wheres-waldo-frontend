@@ -15,7 +15,7 @@ function App() {
         <Routes>
           <>
             <Route path="/" element={<Homepage />} />
-            <Route path="/round/start/:mapId" element={<Game />} />
+            <Route path="/round/start/:imageId" element={<Game />} />
             <Route path="*" element={<NotFound />} />
           </>
         </Routes>
