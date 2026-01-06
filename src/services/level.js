@@ -1,7 +1,8 @@
 // Function call to return the selected level
 const getLevel = async (imageId) => {
   const response = await fetch(`http://localhost:3000/round/start/${imageId}`, {
-    method: 'GET'
+    method: 'GET',
+    credentials: 'include'
   })
 
   if (!response.ok) {
