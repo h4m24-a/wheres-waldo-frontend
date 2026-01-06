@@ -2,26 +2,41 @@
 import { useState, useRef } from "react"
 import Modal from  "../components/modal";
 import { useParams } from "react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import getLevel from "../services/level";
+import startGame from "../services/startGame";
 
 export default function Game() {
 
-
   const { imageId } = useParams()
-  console.log(imageId)
+
+  const [gameWon, setGameWon] = useState(false)
   const [position, setPosition] = useState({ x: undefined, y: undefined });
+  const [characterName, setCharacterName] = useState('')
   // const [characters, setCharacters] = useState([])
   const [showModal, setShowModal] = useState(false)
+  const [roundId, setRoundId] = useState()
+  const [gameStarted, setGameStarted] = useState("")
   const imgRef = useRef(null)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['level'],
-    queryFn: () => getLevel(imageId)
+    queryFn: () => getLevel(imageId),
+    enabled: !!imageId // getLevel isn't invoked without a imageId
   });
 
 
-  
+
+  const startGameMutation = useMutation({
+  mutationFn: (imageId) => startGame(imageId),
+    onSuccess: (data) => {
+
+      setRoundId(data.roundId)
+      setGameStarted(data.message)
+    }
+  })
+
+
   
   if (isLoading) {
     return <div>Loading Level...</div>
@@ -41,26 +56,47 @@ export default function Game() {
 
     setPosition({x,y})
 
+    
+    
     setShowModal(!showModal)
     
-};
+  };
+  
+  
+  // Retrieve Character Name from Modal - receives the name of the character when clicked
+  const HandleCharacterNameChange = (name) => {
+    setCharacterName(name);   // Update the state with the clicked character's name
+    setShowModal(false)
+  }
 
-
-
-
+  
  
   return (
     <>
+
+    
       <main>
         <div className="flex flex-col justify-center items-center">
           {/* <p className="text-center font-poppins text-red-500">
             X: {position.x}, Y: {position.y}
-          </p> */}
+            </p> */}
           <h1 className="text-4xl text-center  rounded uppercase text-red-500 px-8 py-3 font-bungee ">
             {" "}
             <span className=" text-blue-400 pr-2">Where's</span> Wally?
           </h1>
           
+            <button 
+              onClick={() => startGameMutation.mutate(imageId)}
+              disabled={!!roundId} 
+              className={` 
+                p-2 font-play text-md mb-2 border-2 cursor-pointer rounded border-black 
+                 ${roundId ? 'bg-green-200 text-green-800' : 'bg-amber-600 hover:bg-amber-700'}
+                `} 
+              >
+              {roundId ? 'Round Started' : 'Start Game'}
+            </button>
+
+            {gameStarted && <p className="font-poppins text-xs text-blue-400">{gameStarted} </p>}
         </div>
 
         
@@ -90,7 +126,14 @@ export default function Game() {
       )}
 
           
-          {showModal &&  <Modal  top={position.y} left={position.x} characters={data.level.characters} />}
+          {showModal && (
+            <Modal  
+              top={position.y} 
+              left={position.x} 
+              characters={data.level.characters} 
+              onClick={HandleCharacterNameChange}   // eg HandleCharacterName('wally') but wally is retrieved from the modal
+              />
+          )}
         </div>
 
 
