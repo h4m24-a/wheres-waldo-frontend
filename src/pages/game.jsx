@@ -1,80 +1,87 @@
 // Display the selected level using id in url parameter
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Modal from  "../components/modal";
 import { useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import getLevel from "../services/level";
-import startGame from "../services/startGame";
+import startRound from "../services/startRound";
+import currentRound from "../services/currentRound";
 
 export default function Game() {
-
-  const { imageId } = useParams()
-
-  const [gameWon, setGameWon] = useState(false)
+  const { imageId } = useParams();
+  const queryClient = useQueryClient()
   const [position, setPosition] = useState({ x: undefined, y: undefined });
-  const [characterName, setCharacterName] = useState('')
-  // const [characters, setCharacters] = useState([])
-  const [showModal, setShowModal] = useState(false)
-  const [roundId, setRoundId] = useState()
-  const [gameStarted, setGameStarted] = useState("")
-  const imgRef = useRef(null)
+  const [characterName, setCharacterName] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const imgRef = useRef(null);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['level'],
+    queryKey: ["level", imageId],
     queryFn: () => getLevel(imageId),
-    enabled: !!imageId // getLevel isn't invoked without a imageId
+    enabled: !!imageId, // getLevel isn't invoked without a imageId
   });
 
 
 
-  const startGameMutation = useMutation({
-  mutationFn: (imageId) => startGame(imageId),
-    onSuccess: (data) => {
+  // GET current round if active
+  const {
+    data: currentRoundData,  //+ .roundId gives access to roundId
+    isLoading: currentRoundLoading,
+    isError: currentRoundError,
+  } = useQuery({
+    queryKey: ["currentRound"],     // queryKey is unique identifier for a query.
+    queryFn: () => currentRound(),
+  });
 
-      setRoundId(data.roundId)
-      setGameStarted(data.message)
+
+
+  
+
+  // Start Round - POST
+  const startRoundMutation = useMutation({
+    mutationFn: (imageId) => startRound(imageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentRound']})
     }
-  })
-
-
+  });
   
+  const roundId = currentRoundData?.roundId  // Gets Round Id
+  const roundStarted = Boolean(roundId)      // Checks to see if roundId is true
+  console.log(roundId)
+
+
+  if (currentRoundLoading || currentRoundError) {
+    return <div> Loading Active Round </div>;
+  }
+
+
+
   if (isLoading) {
-    return <div>Loading Level...</div>
+    return <div>Loading Level...</div>;
   }
-  
+
   if (isError || !data.level) {
-    return <div>Error fetching level... </div>
+    return <div>Error fetching level... </div>;
   }
-
-
 
   const HandleClick = (e) => {
-
     const rect = imgRef.current.getBoundingClientRect(); // bounding rectangle relative to viewport
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    setPosition({x,y})
+    setPosition({ x, y });
 
-    
-    
-    setShowModal(!showModal)
-    
+    setShowModal(!showModal);
   };
-  
-  
+
   // Retrieve Character Name from Modal - receives the name of the character when clicked
   const HandleCharacterNameChange = (name) => {
-    setCharacterName(name);   // Update the state with the clicked character's name
-    setShowModal(false)
-  }
+    setCharacterName(name); // Update the state with the clicked character's name
+    setShowModal(false);
+  };
 
-  
- 
   return (
     <>
-
-    
       <main>
         <div className="flex flex-col justify-center items-center">
           {/* <p className="text-center font-poppins text-red-500">
@@ -84,61 +91,57 @@ export default function Game() {
             {" "}
             <span className=" text-blue-400 pr-2">Where's</span> Wally?
           </h1>
-          
-            <button 
-              onClick={() => startGameMutation.mutate(imageId)}
-              disabled={!!roundId} 
-              className={` 
-                p-2 font-play text-md mb-2 border-2 cursor-pointer rounded border-black 
-                 ${roundId ? 'bg-green-200 text-green-800' : 'bg-amber-600 hover:bg-amber-700'}
-                `} 
-              >
-              {roundId ? 'Round Started' : 'Start Game'}
-            </button>
 
-            {gameStarted && <p className="font-poppins text-xs text-blue-400">{gameStarted} </p>}
+          <button
+            onClick={() => startRoundMutation.mutate(imageId)}
+            disabled={roundStarted}
+            className={` 
+                p-2 font-play text-md mb-2 border-2 cursor-pointer rounded border-black 
+                 ${
+                   roundId
+                     ? "bg-green-200 text-green-800"
+                     : "bg-amber-600 hover:bg-amber-700"
+                 }
+                `}
+          >
+            {roundStarted ? "Round Started" : "Start Round"}
+          </button>
+
+          {roundStarted && (
+            <p className="font-poppins text-xs text-blue-400">{roundStarted} </p>
+          )}
         </div>
 
-        
         <div className="mx-auto relative w-[1464px] h-[919px]">
-
-          
           <img
             ref={imgRef}
-            onClick={HandleClick}  // e is automatically passed
+            onClick={HandleClick} // e is automatically passed
             id="level"
             className="p-0.5 w-full h-auto cursor-pointer  border-4 border-black"
             src={data.level.path}
             alt={data.level.name}
           />
 
+          {position.x && position.y && (
+            <div
+              className="absolute p-3.5 rounded  border-4 border-purple-600 box-border"
+              style={{
+                left: `${position.x}px`,
+                top: `${position.y}px`,
+                transform: "translate(-50%, -50%)", // center div on click-  1st value left or right,  2nd value up or down
+              }}
+            ></div>
+          )}
 
-      { position.x && position.y && (
-        <div
-          className="absolute p-3.5 rounded  border-4 border-purple-600 box-border"
-          style={{
-            left: `${position.x}px`,
-            top: `${position.y}px`,
-            transform: "translate(-50%, -50%)", // center div on click-  1st value left or right,  2nd value up or down
-          }}
-        ></div>
-
-      )}
-
-          
           {showModal && (
-            <Modal  
-              top={position.y} 
-              left={position.x} 
-              characters={data.level.characters} 
-              onClick={HandleCharacterNameChange}   // eg HandleCharacterName('wally') but wally is retrieved from the modal
-              />
+            <Modal
+              top={position.y}
+              left={position.x}
+              characters={data.level.characters}
+              onClick={HandleCharacterNameChange} // eg HandleCharacterName('wally') but wally is retrieved from the modal
+            />
           )}
         </div>
-
-
-       
-
       </main>
     </>
   );
