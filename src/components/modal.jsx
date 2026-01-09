@@ -11,15 +11,15 @@ const Modal = ( { characters, top, left, onClick, className = "" } ) => {  // ch
       {characters.map((character) => {
         return (
           <div 
-            onClick={() => onClick(character.name)} // passing character name to parent component
-            key={character.name} className=" grid grid-cols-2  place-items-center px-2 rounded py-0.5  transition-transform duration-300 ease-in-out  hover:shadow overflow-hidden gap-1 cursor-pointer">
+            onClick={() => onClick(character.character_name)} // passing character name to parent component
+            key={character.id} className=" grid grid-cols-2  place-items-center px-2 rounded py-0.5  transition-transform duration-300 ease-in-out  hover:shadow overflow-hidden gap-1 cursor-pointer">
             <img
-            src={character.image}
-            alt={character.name}
+            src={character.image_path}
+            alt={character.character_name}
             className="w-14 h-14 object-contain" 
             />
 
-            <p className="font-bungee text-sm font-bold">{character.name}</p>
+            <p className="font-bungee text-sm font-bold">{character.character_name}</p>
         </div>
         )
 
