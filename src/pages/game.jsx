@@ -1,20 +1,22 @@
 // Display the selected level using id in url parameter
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import Modal from  "../components/modal";
 import { useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import getLevel from "../services/level";
 import startRound from "../services/startRound";
 import currentRound from "../services/currentRound";
+import valiadateGuess from "../services/validateGuess";
 
 export default function Game() {
   const { imageId } = useParams();
   const queryClient = useQueryClient()
   const [position, setPosition] = useState({ x: undefined, y: undefined });
-  const [characterName, setCharacterName] = useState("");
   const [showModal, setShowModal] = useState(false);
   const imgRef = useRef(null);
 
+
+  // Get level
   const { data, isLoading, isError } = useQuery({
     queryKey: ["level", imageId],
     queryFn: () => getLevel(imageId),
@@ -23,14 +25,14 @@ export default function Game() {
 
 
 
-  // GET current round if active
+  // GET current round if active - runs when component is mounted even after a refresh
   const {
-    data: currentRoundData,  //+ .roundId gives access to roundId
+    data: currentRoundData,  // + .roundId gives access to roundId
     isLoading: currentRoundLoading,
     isError: currentRoundError,
   } = useQuery({
     queryKey: ["currentRound"],     // queryKey is unique identifier for a query.
-    queryFn: () => currentRound(),
+    queryFn: () => currentRound(),  
   });
 
 
@@ -45,11 +47,43 @@ export default function Game() {
     }
   });
   
-  const roundId = currentRoundData?.roundId  // Gets Round Id
+  const roundId = currentRoundData?.roundId  // Gets Round Id - reflects the actual round in session.
   const roundStarted = Boolean(roundId)      // Checks to see if roundId is true
   console.log(roundId)
 
 
+  
+  const HandleClick = (e) => {
+    if (!roundStarted) return;
+    const rect = imgRef.current.getBoundingClientRect(); // bounding rectangle relative to viewport
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setPosition({ x, y });
+    
+    setShowModal(!showModal);
+  };
+
+
+  // Retrieve Character Name from Modal - receives the name of the character when clicked
+  const HandleCharacterNameChange = (name) => {
+    setShowModal(false);
+    validateGuessMutation.mutate({ name })
+  };
+  
+
+  // Validate Guess - POST
+  const validateGuessMutation = useMutation({
+    mutationFn: ( { name }) => valiadateGuess(imageId, position.x, position.y, name),   // name is retrieved from the modal
+     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentRound']})
+    }
+  })
+  
+
+
+  
+  
   if (currentRoundLoading || currentRoundError) {
     return <div> Loading Active Round </div>;
   }
@@ -60,25 +94,11 @@ export default function Game() {
     return <div>Loading Level...</div>;
   }
 
+
   if (isError || !data.level) {
     return <div>Error fetching level... </div>;
   }
 
-  const HandleClick = (e) => {
-    const rect = imgRef.current.getBoundingClientRect(); // bounding rectangle relative to viewport
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    setPosition({ x, y });
-
-    setShowModal(!showModal);
-  };
-
-  // Retrieve Character Name from Modal - receives the name of the character when clicked
-  const HandleCharacterNameChange = (name) => {
-    setCharacterName(name); // Update the state with the clicked character's name
-    setShowModal(false);
-  };
 
   return (
     <>
@@ -94,7 +114,7 @@ export default function Game() {
 
           <button
             onClick={() => startRoundMutation.mutate(imageId)}
-            disabled={roundStarted}
+            disabled={roundStarted}   // button can't be clicked once roundStarted is true. after user  starts round
             className={` 
                 p-2 font-play text-md mb-2 border-2 cursor-pointer rounded border-black 
                  ${
@@ -115,11 +135,16 @@ export default function Game() {
         <div className="mx-auto relative w-[1464px] h-[919px]">
           <img
             ref={imgRef}
-            onClick={HandleClick} // e is automatically passed
+            onClick={roundStarted? HandleClick : undefined} // e is automatically passed / user can't select image until round started
             id="level"
             className="p-0.5 w-full h-auto cursor-pointer  border-4 border-black"
             src={data.level.path}
             alt={data.level.name}
+            style={
+              {
+                pointerEvents: roundStarted ? 'auto': 'none' // disable pointer if round isn't started
+              }
+            }
           />
 
           {position.x && position.y && (
@@ -137,7 +162,7 @@ export default function Game() {
             <Modal
               top={position.y}
               left={position.x}
-              characters={data.level.characters}
+              characters={data.characters}
               onClick={HandleCharacterNameChange} // eg HandleCharacterName('wally') but wally is retrieved from the modal
             />
           )}
