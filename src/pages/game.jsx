@@ -14,17 +14,23 @@ export default function Game() {
   const [position, setPosition] = useState({ x: undefined, y: undefined });
   const [showModal, setShowModal] = useState(false);
   const imgRef = useRef(null);
+  const [characterFound, setCharacterFound] = useState([]);
+  const [guessResponse, setGuessResponse] = useState('');
+  const [gameWon, setGameWon] = useState(false)
 
 
   // Get level
   const { data, isLoading, isError } = useQuery({
     queryKey: ["level", imageId],
     queryFn: () => getLevel(imageId),
-    enabled: !!imageId, // getLevel isn't invoked without a imageId
+    enabled: !!imageId, // getLevel isn't invoked without a imageId,
   });
 
+  
+  const totalCharacterCount = data?.totalCharacterCount
 
 
+  
   // GET current round if active - runs when component is mounted even after a refresh
   const {
     data: currentRoundData,  // + .roundId gives access to roundId
@@ -49,7 +55,7 @@ export default function Game() {
   
   const roundId = currentRoundData?.roundId  // Gets Round Id - reflects the actual round in session.
   const roundStarted = Boolean(roundId)      // Checks to see if roundId is true
-  console.log(roundId)
+  
 
 
   
@@ -75,13 +81,27 @@ export default function Game() {
   // Validate Guess - POST
   const validateGuessMutation = useMutation({
     mutationFn: ( { name }) => valiadateGuess(imageId, position.x, position.y, name),   // name is retrieved from the modal
-     onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['currentRound']})
+      if (data.correctGuess) {
+        setCharacterFound(prevName => [...prevName, data.name])
+        setGuessResponse(data.message)
+      } else if (data.correctGuess == false) {
+        setGuessResponse(data.message)
+      } else if (data.duplicate === true) {
+        setGuessResponse(data.message)
+      } else {
+        setGuessResponse(data.message) // Win Game
+        setCharacterFound(prevName => [...prevName, data.name])
+        setGameWon(true)
+      }
     }
   })
   
 
 
+  console.log(characterFound)
+  console.log(gameWon)
   
   
   if (currentRoundLoading || currentRoundError) {
@@ -104,9 +124,10 @@ export default function Game() {
     <>
       <main>
         <div className="flex flex-col justify-center items-center">
-          {/* <p className="text-center font-poppins text-red-500">
-            X: {position.x}, Y: {position.y}
-            </p> */}
+          <p className="text-center font-poppins text-black font-bold">
+            {guessResponse}
+          </p>
+
           <h1 className="text-4xl text-center  rounded uppercase text-red-500 px-8 py-3 font-bungee ">
             {" "}
             <span className=" text-blue-400 pr-2">Where's</span> Wally?
@@ -221,3 +242,9 @@ such as which element of the page was targeted by the user when they clicked - t
     y_max becomes 530
 
 */
+
+
+//TODO: Indicate to the user that a guess is correct or not
+//TODO: Black out characters they've found
+//TODO: Display input for user to submit their username after winning/
+//TODO: Redirect to leaderboard after submitting
