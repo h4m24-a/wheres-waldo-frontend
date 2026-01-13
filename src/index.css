@@ -9,3 +9,39 @@
    --font-poppins: "Poppins", sans-serif;
    --font-play: 'Press Start 2P', sans-serif
 }
+
+
+ input {
+   border: solid 10px rgb(199, 195, 195);
+   padding: 10px 20px;
+   font-family: 'Poppins', sans-serif;
+   width: 100%;
+   background-color: rgb(253, 249, 249);
+ }
+ 
+ /* Add focus styles for inputs */
+ input[type="text"]:focus {
+   border-color: #007bff; 
+   box-shadow: 0 0 8px rgba(0, 123, 255, 0.25); 
+ }
+ 
+ /* Add placeholder styling */
+ input[type="text"]::placeholder {
+   color: #aaa; 
+   opacity: 1; 
+ }
+ 
+ 
+ 
+ /* Style for the form and text inputs */
+ input[type="text"], input[type="password"] {
+   font-family: 'Rubik', Arial, sans-serif; 
+   font-size: 15px; 
+   color: #333;
+   outline: none; 
+   margin-bottom: 16px;
+   border: 1px solid #ddd; 
+   border-radius: 2px; 
+   background-color: #f9f9f9; 
+   transition: border-color 0.3s, box-shadow 0.3s; 
+  }
