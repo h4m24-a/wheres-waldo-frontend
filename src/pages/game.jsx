@@ -1,5 +1,5 @@
 // Display the selected level using id in url parameter
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Modal from  "../components/modal";
 import { useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,6 +7,9 @@ import getLevel from "../services/level";
 import startRound from "../services/startRound";
 import currentRound from "../services/currentRound";
 import valiadateGuess from "../services/validateGuess";
+import submitName from "../services/submitName";
+import gameFinished from "../services/gameFinished";
+import Form from "../components/form"
 
 export default function Game() {
   const { imageId } = useParams();
@@ -14,9 +17,12 @@ export default function Game() {
   const [position, setPosition] = useState({ x: undefined, y: undefined });
   const [showModal, setShowModal] = useState(false);
   const imgRef = useRef(null);
+  const [characters, setCharacters] = useState([])
   const [characterFound, setCharacterFound] = useState([]);
   const [guessResponse, setGuessResponse] = useState('');
-  const [gameWon, setGameWon] = useState(false)
+  const [username, setUsername] = useState('');
+  const [formMessage, setFormMessage] = useState('');
+  const [win, setWin] = useState(false)
 
 
   // Get level
@@ -27,7 +33,7 @@ export default function Game() {
   });
 
   
-  const totalCharacterCount = data?.totalCharacterCount
+  // const totalCharacterCount = data?.totalCharacterCount
 
 
   
@@ -43,13 +49,28 @@ export default function Game() {
 
 
 
+  useEffect(() => {
+    setCharacters(data?.characters)
+  }, [data])
   
+  
+  
+  const {data: gameFinishedData, isLoading: gameFinishedLoading, isError: gameFinishedError} = useQuery({
+    queryKey: ["gameFinished"],
+    queryFn: () => gameFinished()
+  })
+
+  const gameWon = gameFinishedData?.finished
+
+ 
+   console.log(gameWon)
 
   // Start Round - POST
   const startRoundMutation = useMutation({
     mutationFn: (imageId) => startRound(imageId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentRound']})
+      setFormMessage("")
     }
   });
   
@@ -82,7 +103,6 @@ export default function Game() {
   const validateGuessMutation = useMutation({
     mutationFn: ( { name }) => valiadateGuess(imageId, position.x, position.y, name),   // name is retrieved from the modal
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['currentRound']})
       if (data.correctGuess) {
         setCharacterFound(prevName => [...prevName, data.name])
         setGuessResponse(data.message)
@@ -91,23 +111,50 @@ export default function Game() {
       } else if (data.duplicate === true) {
         setGuessResponse(data.message)
       } else {
+        console.log(data)
         setGuessResponse(data.message) // Win Game
         setCharacterFound(prevName => [...prevName, data.name])
-        setGameWon(true)
+        setWin(data.roundComplete)
       }
     }
   })
   
 
 
+
+
+  // Submit Name - POST
+  const submitNameMutation = useMutation({
+    mutationFn: () => submitName(username),
+    onSuccess: (data) => {
+      if (data) {
+        setFormMessage(data.message);
+      } else {
+        setFormMessage(data.error)
+      }
+    }
+  })
+
+  
+
+  const HandleFormSubmit = async (e) => {
+    e.preventDefault()
+    submitNameMutation.mutate(username)
+    setWin(false)
+    setUsername("")
+  }
+
   console.log(characterFound)
-  console.log(gameWon)
   
   
   if (currentRoundLoading || currentRoundError) {
     return <div> Loading Active Round </div>;
   }
 
+
+  if (gameFinishedLoading || gameFinishedError) {
+    return <div> Checking if game is finished</div>
+  }
 
 
   if (isLoading) {
@@ -120,12 +167,19 @@ export default function Game() {
   }
 
 
+
+  
+
   return (
     <>
       <main>
         <div className="flex flex-col justify-center items-center">
           <p className="text-center font-poppins text-black font-bold">
             {guessResponse}
+          </p>
+
+          <p className="text-center font-poppins text-black font-bold">
+            {formMessage}
           </p>
 
           <h1 className="text-4xl text-center  rounded uppercase text-red-500 px-8 py-3 font-bungee ">
@@ -183,11 +237,22 @@ export default function Game() {
             <Modal
               top={position.y}
               left={position.x}
-              characters={data.characters}
+              characters={characters}
               onClick={HandleCharacterNameChange} // eg HandleCharacterName('wally') but wally is retrieved from the modal
             />
           )}
         </div>
+
+        { (gameWon || win) &&
+        <Form
+        HandleFormFunction={HandleFormSubmit}
+        value={username}
+        onChange={setUsername}
+        
+        />
+         } 
+
+  
       </main>
     </>
   );
@@ -244,7 +309,6 @@ such as which element of the page was targeted by the user when they clicked - t
 */
 
 
-//TODO: Indicate to the user that a guess is correct or not
-//TODO: Black out characters they've found
-//TODO: Display input for user to submit their username after winning/
+
+//TODO: fix round Id when submitting username
 //TODO: Redirect to leaderboard after submitting
