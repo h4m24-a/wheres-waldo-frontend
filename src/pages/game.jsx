@@ -70,7 +70,11 @@ export default function Game() {
     mutationFn: (imageId) => startRound(imageId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentRound']})
-      setFormMessage("")
+      setFormMessage("");
+      setCharacterFound([]);
+      setGuessResponse("");
+      setFormMessage("");
+      setUsername("")
     }
   });
   
@@ -141,7 +145,7 @@ export default function Game() {
     e.preventDefault()
     submitNameMutation.mutate(username)
     setWin(false)
-    setUsername("")
+  
   }
 
   console.log(characterFound)
