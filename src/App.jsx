@@ -5,6 +5,7 @@ import { Navigate, BrowserRouter, Routes, Route } from "react-router";
 import Homepage from "./pages/home";
 import Game from "./pages/game";
 import NotFound from "./pages/notFound";
+;
 
 function App() {
   const queryClient = new QueryClient();
