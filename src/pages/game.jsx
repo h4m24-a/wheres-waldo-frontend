@@ -9,7 +9,9 @@ import currentRound from "../services/currentRound";
 import valiadateGuess from "../services/validateGuess";
 import submitName from "../services/submitName";
 import gameFinished from "../services/gameFinished";
-import Form from "../components/form"
+import Form from "../components/form";
+import leaderboard from "../services/leaderboard";
+import Leaderboard from "../components/leaderboard";
 
 export default function Game() {
   const { imageId } = useParams();
@@ -22,6 +24,7 @@ export default function Game() {
   const [guessResponse, setGuessResponse] = useState('');
   const [username, setUsername] = useState('');
   const [formMessage, setFormMessage] = useState('');
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [win, setWin] = useState(false)
 
 
@@ -63,8 +66,6 @@ export default function Game() {
   const gameWon = gameFinishedData?.finished
 
  
-   console.log(gameWon)
-
   // Start Round - POST
   const startRoundMutation = useMutation({
     mutationFn: (imageId) => startRound(imageId),
@@ -74,7 +75,8 @@ export default function Game() {
       setCharacterFound([]);
       setGuessResponse("");
       setFormMessage("");
-      setUsername("")
+      setUsername("");
+      setShowLeaderboard("")
     }
   });
   
@@ -145,8 +147,18 @@ export default function Game() {
     e.preventDefault()
     submitNameMutation.mutate(username)
     setWin(false)
+    setShowLeaderboard(true)
   
   }
+
+
+
+  // Leaderboard -  GET
+
+  const { data: leaderboardData, isLoading: leaderboardisLoading, isError: leaderboardIsError } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: () => leaderboard(imageId)
+  })
 
   console.log(characterFound)
   
@@ -169,6 +181,16 @@ export default function Game() {
   if (isError || !data.level) {
     return <div>Error fetching level... </div>;
   }
+
+
+  if (leaderboardisLoading) {
+    return <div>Loading Leaderboard...</div>
+  }
+
+  if (leaderboardIsError) {
+    return <div>Error fetching leaderboard</div>
+  }
+
 
 
 
@@ -254,7 +276,38 @@ export default function Game() {
         onChange={setUsername}
         
         />
-         } 
+        } 
+
+
+
+        { showLeaderboard && (
+          <div className="">
+            <h1 className="text-2xl font-bold text-center mb-6">Leaderboard</h1>
+            <table className="table-auto max-w-7xl border-separate border border-spacing-2 rounded mx-auto px-5 w-full">
+            <thead>
+              <tr>
+                <th className="border border-gray-300">#</th>
+                <th className="border border-gray-300">Name</th>
+                <th className="border border-gray-300">Time</th>
+              </tr>
+            </thead>
+            <tbody>
+  
+              {leaderboardData.map((l, index) => {
+                return (
+                  <tr key={l.id}>
+                    <td>{index + 1}</td>
+                    <td>{l.name}</td>
+                    <td>{`${l.time.seconds}s`}</td>   {/* Display seconds using time.seconds */}
+                  </tr>
+                );
+              })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+
 
   
       </main>
@@ -314,5 +367,6 @@ such as which element of the page was targeted by the user when they clicked - t
 
 
 
-//TODO: fix round Id when submitting username
+//TODO: display name of level
+//TODO: Style Leaderboard table
 //TODO: Redirect to leaderboard after submitting
