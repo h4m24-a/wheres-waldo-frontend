@@ -1,7 +1,7 @@
 // Display the selected level using id in url parameter
 import { useState, useRef, useEffect } from "react"
 import Modal from  "../components/modal";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import getLevel from "../services/level";
 import startRound from "../services/startRound";
@@ -11,10 +11,11 @@ import submitName from "../services/submitName";
 import gameFinished from "../services/gameFinished";
 import Form from "../components/form";
 import leaderboard from "../services/leaderboard";
-import Leaderboard from "../components/leaderboard";
+import { Navigate } from "react-router";
 
 export default function Game() {
   const { imageId } = useParams();
+  const Navigate = useNavigate()
   const queryClient = useQueryClient()
   const [position, setPosition] = useState({ x: undefined, y: undefined });
   const [showModal, setShowModal] = useState(false);
@@ -76,7 +77,7 @@ export default function Game() {
       setGuessResponse("");
       setFormMessage("");
       setUsername("");
-      setShowLeaderboard("")
+      setShowLeaderboard(false)
     }
   });
   
@@ -148,8 +149,9 @@ export default function Game() {
     submitNameMutation.mutate(username)
     setWin(false)
     setShowLeaderboard(true)
-  
+    window.scroll(0,0)
   }
+
 
 
 
@@ -157,10 +159,19 @@ export default function Game() {
 
   const { data: leaderboardData, isLoading: leaderboardisLoading, isError: leaderboardIsError } = useQuery({
     queryKey: ['leaderboard'],
-    queryFn: () => leaderboard(imageId)
+    queryFn: () => leaderboard(imageId),
+    enabled: !!showLeaderboard
   })
 
-  console.log(characterFound)
+
+
+
+  // Format time
+  const HandleTimeFormat = (seconds) => {
+    const minutes = Math.floor(seconds / 60)  // gives you minutes when you divide by 60. 60 minutes in 1 hour.  eg 7200 seconds / 60  = 120 minutes ( 2 hours)
+    const remainingSeconds = seconds % 60; // gives the remaining seconds after the minutes are extracted using modulo operator
+     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`; // enures that seconds are always displayed as two digits (eg 09 instead of 9).
+  }
   
   
   if (currentRoundLoading || currentRoundError) {
@@ -280,32 +291,43 @@ export default function Game() {
 
 
 
-        { showLeaderboard && (
-          <div className="">
-            <h1 className="text-2xl font-bold text-center mb-6">Leaderboard</h1>
-            <table className="table-auto max-w-7xl border-separate border border-spacing-2 rounded mx-auto px-5 w-full">
-            <thead>
+       { showLeaderboard && ( 
+          <div className="flex  flex-col max-h-full scroll-m-3 items-center justify-center absolute inset-0 backdrop-blur-xl bg-opacity-50">
+            <h1 className="text-4xl font-bungee font-bold text-center mt-3 ">Leaderboard</h1>
+            <table className="max-w-6xl w-full mx-auto mt-5 mb-5 bg-white shadow-lg border-collapse rounded-lg ">
+            <thead className=" bg-gray-300  p-12 border-b-3 border-b-solid border-b-emerald-50 text-left tracking-tighter opacity-70 uppercase font-poppins font-bold ">
               <tr>
-                <th className="border border-gray-300">#</th>
-                <th className="border border-gray-300">Name</th>
-                <th className="border border-gray-300">Time</th>
+                <th className="bg-gray-300 p-3   rounded-tl-lg  border-b-3 border-b-solid border-b-zinc-100 text-left tracking-tighter opacity-70 uppercase font-poppins font-bold ">#</th>
+                <th className="bg-gray-300 p-3  border-b-3 border-b-solid border-b-zinc-100 text-left tracking-tighter opacity-70 uppercase font-poppins font-bold ">Name</th>
+                <th className="bg-gray-300 p-3  rounded-tr-lg border-b-3 border-b-solid border-b-zinc-100 text-left tracking-tighter opacity-70 uppercase font-poppins font-bold ">Time</th>
               </tr>
             </thead>
             <tbody>
   
               {leaderboardData.map((l, index) => {
                 return (
-                  <tr key={l.id}>
-                    <td>{index + 1}</td>
-                    <td>{l.name}</td>
-                    <td>{`${l.time.seconds}s`}</td>   {/* Display seconds using time.seconds */}
+                  <tr className="p-4 mb-8 text-left font-poppins border-b-solid border-b-gray-100 " key={l.id}>
+                    <td className="font-bold p-4 mb-8 text-left font-poppins border-b-solid border-b-gray-100">{index + 1}</td>
+                    <td className="p-4 mb-8 text-left font-poppins border-b-solid border-b-gray-100">{l.name}</td>
+                    <td className="p-4 mb-8 text-left font-poppins border-b-solid border-b-gray-100">  
+                      <time>{HandleTimeFormat(l.time.seconds)}</time>
+                      </td>   {/* Display seconds using time.seconds */}
                   </tr>
                 );
               })}
               </tbody>
             </table>
+            
+            <div className="flex flex-row gap-2">
+              <button 
+                onClick={() => Navigate('/')} 
+                className="px-6 py-3 text-white bg-gray-950 border-4 border-black block mx-auto hover:bg-gray-800 hover:border-gray-800 rounded-lg cursor-pointer font-bold transition-all duration-200 transform" >
+              Select Level
+              </button>
+
+            </div>
           </div>
-        )}
+        )} 
 
 
 
@@ -365,8 +387,3 @@ such as which element of the page was targeted by the user when they clicked - t
 
 */
 
-
-
-//TODO: display name of level
-//TODO: Style Leaderboard table
-//TODO: Redirect to leaderboard after submitting
