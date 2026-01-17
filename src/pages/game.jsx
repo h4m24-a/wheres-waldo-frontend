@@ -21,12 +21,12 @@ export default function Game() {
   const [showModal, setShowModal] = useState(false);
   const imgRef = useRef(null);
   const [characters, setCharacters] = useState([])
-  const [characterFound, setCharacterFound] = useState([]);
+  const [characterFound, setCharacterFound] = useState([]);  // contains ID, name, x , y properties - populated on a correct guess
   const [guessResponse, setGuessResponse] = useState('');
   const [username, setUsername] = useState('');
   const [formMessage, setFormMessage] = useState('');
   const [showLeaderboard, setShowLeaderboard] = useState(false)
-  const [win, setWin] = useState(false)
+  const [win, setWin] = useState(false);
 
 
   // Get level
@@ -111,7 +111,7 @@ export default function Game() {
     mutationFn: ( { name }) => valiadateGuess(imageId, position.x, position.y, name),   // name is retrieved from the modal
     onSuccess: (data) => {
       if (data.correctGuess) {
-        setCharacterFound(prevName => [...prevName, data.name])
+        setCharacterFound(prevData => [...prevData, { id:prevData.length + 1, name: data.name, x: position.x, y: position.y }])
         setGuessResponse(data.message)
       } else if (data.correctGuess == false) {
         setGuessResponse(data.message)
@@ -120,7 +120,7 @@ export default function Game() {
       } else {
         console.log(data)
         setGuessResponse(data.message) // Win Game
-        setCharacterFound(prevName => [...prevName, data.name])
+        setCharacterFound(prevData => [...prevData, { id: prevData.length + 1, name: data.name, x: position.x, y: position.y } ])
         setWin(data.roundComplete)
       }
     }
@@ -163,7 +163,9 @@ export default function Game() {
     enabled: !!showLeaderboard
   })
 
+  console.log(characterFound)
 
+ 
 
 
   // Format time
@@ -210,20 +212,14 @@ export default function Game() {
   return (
     <>
       <main>
-        <div className="flex flex-col justify-center items-center">
-          <p className="text-center font-poppins text-black font-bold">
-            {guessResponse}
-          </p>
-
-          <p className="text-center font-poppins text-black font-bold">
-            {formMessage}
-          </p>
+        <div className="flex flex-col max-5xl-full w-full justify-center items-center">
 
           <h1 className="text-4xl text-center  rounded uppercase text-red-500 px-8 py-3 font-bungee ">
             {" "}
             <span className=" text-blue-400 pr-2">Where's</span> Wally?
           </h1>
 
+          
           <button
             onClick={() => startRoundMutation.mutate(imageId)}
             disabled={roundStarted}   // button can't be clicked once roundStarted is true. after user  starts round
@@ -242,6 +238,14 @@ export default function Game() {
           {roundStarted && (
             <p className="font-poppins text-xs text-blue-400">{roundStarted} </p>
           )}
+
+          <p className="text-center font-poppins text-black font-bold">
+            {guessResponse}
+          </p>
+
+          <p className="text-center font-poppins text-black font-bold">
+            {formMessage}
+          </p>
         </div>
 
         <div className="mx-auto relative w-[1464px] h-[919px]">
@@ -269,6 +273,19 @@ export default function Game() {
               }}
             ></div>
           )}
+
+
+          {characterFound.map((c, index) => (
+            <div key={index + 1}
+            className="absolute p-3.5 rounded  border-4 border-orange-500 box-border"
+            style={{
+              left: `${c.x}px`,
+              top: `${c.y}px`,
+              transform: "translate(-50%, -50%)", // center div on click-  1st value left or right,  2nd value up or down
+            }}
+            ></div>
+
+          ))}
 
           {showModal && (
             <Modal
@@ -311,7 +328,7 @@ export default function Game() {
                     <td className="p-4 mb-8 text-left font-poppins border-b-solid border-b-gray-100">{l.name}</td>
                     <td className="p-4 mb-8 text-left font-poppins border-b-solid border-b-gray-100">  
                       <time>{HandleTimeFormat(l.time.seconds)}</time>
-                      </td>   {/* Display seconds using time.seconds */}
+                      </td>  
                   </tr>
                 );
               })}
@@ -387,3 +404,6 @@ such as which element of the page was targeted by the user when they clicked - t
 
 */
 
+
+
+//TODO: Display users  own time in the leaderboard component
