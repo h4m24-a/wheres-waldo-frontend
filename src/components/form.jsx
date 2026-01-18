@@ -1,4 +1,4 @@
-const Form = ({ HandleFormFunction,  value, onChange }) => {
+const Form = ({ HandleFormFunction,  value, onChange, time }) => {
 
   return (
 
@@ -21,6 +21,11 @@ const Form = ({ HandleFormFunction,  value, onChange }) => {
         onChange={ (e) => onChange(e.target.value)}
         required
       />
+
+
+      <p className="text-center m-2 mx-auto font-medium">Your Time: {time}</p>
+
+
 
 
 
