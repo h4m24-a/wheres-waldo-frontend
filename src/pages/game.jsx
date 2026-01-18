@@ -27,7 +27,7 @@ export default function Game() {
   const [formMessage, setFormMessage] = useState('');
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [win, setWin] = useState(false);
-
+  const [time, setTime] = useState(undefined)
 
   // Get level
   const { data, isLoading, isError } = useQuery({
@@ -118,10 +118,10 @@ export default function Game() {
       } else if (data.duplicate === true) {
         setGuessResponse(data.message)
       } else {
-        console.log(data)
         setGuessResponse(data.message) // Win Game
-        setCharacterFound(prevData => [...prevData, { id: prevData.length + 1, name: data.name, x: position.x, y: position.y } ])
+        setCharacterFound(prevData => [...prevData, { id: prevData.length + 1, name: data.name, x: position.x, y: position.y } ]) // For placing marker
         setWin(data.roundComplete)
+        setTime(data.time)
       }
     }
   })
@@ -169,11 +169,29 @@ export default function Game() {
 
 
   // Format time
-  const HandleTimeFormat = (seconds) => {
-    const minutes = Math.floor(seconds / 60)  // gives you minutes when you divide by 60. 60 minutes in 1 hour.  eg 7200 seconds / 60  = 120 minutes ( 2 hours)
-    const remainingSeconds = seconds % 60; // gives the remaining seconds after the minutes are extracted using modulo operator
-     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`; // enures that seconds are always displayed as two digits (eg 09 instead of 9).
+  const HandleTimeFormat = (time) => {
+    if (!time) {
+     return "NA";
+}
+    const hours = Number(time.hours || "0");
+    const minutes = Number(time.minutes || 0)
+    const seconds = Number(time.seconds || 0)
+
+    // Displays hours in hh:mm:ss if its greater than 0
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`; // enures that minutes & seconds are always displayed as two digits (eg 09 instead of 9).
+      
+    } else if (minutes > 0) {   // Displays minutes if there is a minute
+      return `${minutes.toString()}m:${seconds.toString().padStart(2, '0')}s`; // enures that minutes & seconds are always displayed as two digits (eg 09 instead of 9).
+
+    } else {    // Else just play seconds
+      return `${seconds.toString()}s`; // enures that minutes & seconds are always displayed as two digits (eg 09 instead of 9).
+      
+    }
+    
   }
+  
+
   
   
   if (currentRoundLoading || currentRoundError) {
@@ -277,7 +295,7 @@ export default function Game() {
 
           {characterFound.map((c, index) => (
             <div key={index + 1}
-            className="absolute p-3.5 rounded  border-4 border-orange-500 box-border"
+            className="absolute p-3.5 rounded  border-4 border-blue-600 box-border"
             style={{
               left: `${c.x}px`,
               top: `${c.y}px`,
@@ -302,10 +320,9 @@ export default function Game() {
         HandleFormFunction={HandleFormSubmit}
         value={username}
         onChange={setUsername}
-        
+        time={HandleTimeFormat(time)}
         />
         } 
-
 
 
        { showLeaderboard && ( 
@@ -327,7 +344,7 @@ export default function Game() {
                     <td className="font-bold p-4 mb-8 text-left font-poppins border-b-solid border-b-gray-100">{index + 1}</td>
                     <td className="p-4 mb-8 text-left font-poppins border-b-solid border-b-gray-100">{l.name}</td>
                     <td className="p-4 mb-8 text-left font-poppins border-b-solid border-b-gray-100">  
-                      <time>{HandleTimeFormat(l.time.seconds)}</time>
+                      <time>{HandleTimeFormat(l.time)}</time>
                       </td>  
                   </tr>
                 );
