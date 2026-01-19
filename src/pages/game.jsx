@@ -77,7 +77,8 @@ export default function Game() {
       setGuessResponse("");
       setFormMessage("");
       setUsername("");
-      setShowLeaderboard(false)
+      setShowLeaderboard(false);
+      setTime("")
     }
   });
   
@@ -111,7 +112,7 @@ export default function Game() {
     mutationFn: ( { name }) => valiadateGuess(imageId, position.x, position.y, name),   // name is retrieved from the modal
     onSuccess: (data) => {
       if (data.correctGuess) {
-        setCharacterFound(prevData => [...prevData, { id:prevData.length + 1, name: data.name, x: position.x, y: position.y }])
+        setCharacterFound(prevData => [...prevData, { id:prevData.length + 1, name: data.name, x: position.x, y: position.y }])   //...spread operator for immutability, copies all previous data of array and creates a new shallow copy
         setGuessResponse(data.message)
       } else if (data.correctGuess == false) {
         setGuessResponse(data.message)
@@ -134,6 +135,7 @@ export default function Game() {
   const submitNameMutation = useMutation({
     mutationFn: () => submitName(username),
     onSuccess: (data) => {
+      queryClient.invalidateQueries(["leaderboard"]);   // Rerun leaderboard query after user submits data
       if (data) {
         setFormMessage(data.message);
       } else {
@@ -156,14 +158,12 @@ export default function Game() {
 
 
   // Leaderboard -  GET
-
   const { data: leaderboardData, isLoading: leaderboardisLoading, isError: leaderboardIsError } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: () => leaderboard(imageId),
     enabled: !!showLeaderboard
   })
 
-  console.log(characterFound)
 
  
 
@@ -173,7 +173,7 @@ export default function Game() {
     if (!time) {
      return "NA";
 }
-    const hours = Number(time.hours || "0");
+    const hours = Number(time.hours || 0);
     const minutes = Number(time.minutes || 0)
     const seconds = Number(time.seconds || 0)
 
@@ -181,10 +181,10 @@ export default function Game() {
     if (hours > 0) {
       return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`; // enures that minutes & seconds are always displayed as two digits (eg 09 instead of 9).
       
-    } else if (minutes > 0) {   // Displays minutes if there is a minute
+    } else if (minutes > 0) {   // Displays minutes and seconds if there is a minute
       return `${minutes.toString()}m:${seconds.toString().padStart(2, '0')}s`; // enures that minutes & seconds are always displayed as two digits (eg 09 instead of 9).
 
-    } else {    // Else just play seconds
+    } else {    // Else just only display seconds
       return `${seconds.toString()}s`; // enures that minutes & seconds are always displayed as two digits (eg 09 instead of 9).
       
     }
