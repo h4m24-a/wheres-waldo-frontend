@@ -1,16 +1,25 @@
-# React + Vite
+# wheres-Waldo Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## View Project : 
 
-Currently, two official plugins are available:
+- React
+- Vite
+- Tailwind
+- CSS
+- Tanstack query
+- React Router
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## React Compiler
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
+- A Wheres Wally type game where users need to locate the characters on an image using coordinates from the click event.
+- Users can select a areas of the image before making a guess
+- A targeting box is placed around the area the user has selected.
+- A marker is placed around the area if the guess is correct.
+- Correct/incorrect feedback based on user guess for character location.
+- Tracks time to identify all characters.
+- Players enter their name for leaderboard after completion before viewing the leaderboard.
+- Different maps to select from at home menu.
+- Coordinates are validated after sent to backend before a response is returned
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
