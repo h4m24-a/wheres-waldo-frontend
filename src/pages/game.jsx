@@ -61,10 +61,16 @@ export default function Game() {
   
   const {data: gameFinishedData, isLoading: gameFinishedLoading, isError: gameFinishedError} = useQuery({
     queryKey: ["gameFinished"],
-    queryFn: () => gameFinished()
+    queryFn: () => gameFinished(),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true
   })
 
   const gameWon = gameFinishedData?.finished
+  const elapsed = gameFinishedData?.time
+
+
 
  
   // Start Round - POST
@@ -230,9 +236,9 @@ export default function Game() {
   return (
     <>
       <main>
-        <div className="flex flex-col max-5xl-full w-full justify-center items-center">
+        <div className="flex flex-col max-5xl-full w-full mx-auto justify-center items-center">
 
-          <h1 className="text-4xl text-center  rounded uppercase text-red-500 px-8 py-3 font-bungee ">
+          <h1 className="text-4xl text-center mx-auto  rounded uppercase text-red-500 px-8 py-3 font-bungee ">
             {" "}
             <span className=" text-blue-400 pr-2">Where's</span> Wally?
           </h1>
@@ -320,7 +326,7 @@ export default function Game() {
         HandleFormFunction={HandleFormSubmit}
         value={username}
         onChange={setUsername}
-        time={HandleTimeFormat(time)}
+        time={HandleTimeFormat(time || elapsed)}
         />
         } 
 
