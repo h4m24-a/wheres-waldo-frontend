@@ -45,7 +45,7 @@ export default function Homepage() {
               >
                 <img
                   className=" hover:border-8 hover:border-blue-500 border-white border-8 rounded-2xl  w-auto h-auto mx-auto object-contain"
-                  src={level.path}
+                  src={`/${level.image}`}
                   alt={level.name}
                   
                 />
