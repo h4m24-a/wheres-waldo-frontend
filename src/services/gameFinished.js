@@ -1,5 +1,5 @@
 const gameFinished = async () => {
-  const repsonse = await fetch('http://localhost:3000/round/finished', {
+  const repsonse = await fetch('https://wheres-waldo-frontend-production-6b16.up.railway.app/round/finished', {
     method: 'GET',
     credentials: 'include'
   });

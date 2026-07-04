@@ -1,6 +1,6 @@
 // Validating Guess - Accepts x, y & character_name
 const valiadateGuess = async (imageId, x, y, character_name) => {
-  const response = await fetch('http://localhost:3000/guess', {
+  const response = await fetch('https://wheres-waldo-frontend-production-6b16.up.railway.app/guess', {
     method: 'POST',
     credentials: 'include',
     headers: { "Content-Type": "application/json"},
