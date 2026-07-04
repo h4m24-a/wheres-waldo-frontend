@@ -1,6 +1,6 @@
 // Function call to return the selected level
 const getLevel = async (imageId) => {
-  const response = await fetch(`https://wheres-waldo-frontend-production-6b16.up.railway.app/round/start/${imageId}`, {
+  const response = await fetch(`https://wheres-waldo-game-production.up.railway.app/round/start/${imageId}`, {
     method: 'GET',
     credentials: 'include'
   })
