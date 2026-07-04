@@ -1,7 +1,8 @@
 // Function call to return all levels
 const getAllLevels = async () => {
   const response = await fetch("https://wheres-waldo-frontend-production-6b16.up.railway.app/menu", {
-    method: 'GET'
+    method: 'GET',
+    credentials:'include'
   });
 
   if (!response.ok) {
