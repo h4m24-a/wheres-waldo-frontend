@@ -37,7 +37,7 @@ export default function Homepage() {
 
         <div className="max-w-7xl mx-auto mt-5">
           <div className="grid grid-cols-3">
-            {levels.map((level) => (
+            {levels.levels.map((level) => (
               <Link
                 to={`/round/start/${level.id}`}
                 key={level.id}
