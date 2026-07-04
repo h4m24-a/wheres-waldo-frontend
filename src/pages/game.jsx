@@ -11,7 +11,6 @@ import submitName from "../services/submitName";
 import gameFinished from "../services/gameFinished";
 import Form from "../components/form";
 import leaderboard from "../services/leaderboard";
-import { Navigate } from "react-router";
 
 export default function Game() {
   const { imageId } = useParams();
