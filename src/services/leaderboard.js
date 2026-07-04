@@ -1,5 +1,5 @@
 const leaderboard =  async (imageId) => {
-  const response = await fetch(`https://wheres-waldo-game-production.up.railway.app//leaderboard/${imageId}`, {
+  const response = await fetch(`https://wheres-waldo-game-production.up.railway.app/leaderboard/${imageId}`, {
     method: 'GET',
     credentials: 'include'
   })

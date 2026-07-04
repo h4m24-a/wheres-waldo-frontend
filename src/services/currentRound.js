@@ -1,5 +1,5 @@
 const currentRound = async () => {
-  const repsonse = await fetch('https://wheres-waldo-game-production.up.railway.app//round/current', {
+  const repsonse = await fetch('https://wheres-waldo-game-production.up.railway.app/round/current', {
     method: 'GET',
     credentials: 'include'
   });

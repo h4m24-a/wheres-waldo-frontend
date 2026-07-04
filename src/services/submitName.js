@@ -1,5 +1,5 @@
 const submitName = async (username) => {
-  const response = await fetch("https://wheres-waldo-game-production.up.railway.app//submit", {
+  const response = await fetch("https://wheres-waldo-game-production.up.railway.app/submit", {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
