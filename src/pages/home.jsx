@@ -37,7 +37,7 @@ export default function Homepage() {
 
         <div className="max-w-7xl mx-auto mt-5">
           <div className="grid grid-cols-3">
-            {levels.map((level) => (
+            {levels?.map((level) => (
               <Link
                 to={`/round/start/${level.id}`}
                 key={level.id}
@@ -45,7 +45,7 @@ export default function Homepage() {
               >
                 <img
                   className=" hover:border-8 hover:border-blue-500 border-white border-8 rounded-2xl  w-auto h-auto mx-auto object-contain"
-                  src={`/${level.image}`}
+                  src={level.path}
                   alt={level.name}
                   
                 />
